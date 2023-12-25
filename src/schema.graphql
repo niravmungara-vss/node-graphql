@@ -11,6 +11,7 @@ type Query {
 }
 
 input NewUserModel {
+  id:Int = 0
   name: String
   username: String
   password: String
@@ -19,4 +20,6 @@ input NewUserModel {
 
 type Mutation {
   insert(input: NewUserModel): Users!
+  update(input: NewUserModel): Users!
+  delete(input: Int): Users!
 }

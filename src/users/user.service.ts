@@ -1,24 +1,66 @@
 /* eslint-disable prettier/prettier */
-import { Injectable } from "@nestjs/common";
-import { Users } from "src/graphql";
+import { ForbiddenException, Injectable } from "@nestjs/common";
 import { UserModel } from "./usermodel";
+import { PrismaService } from "src/prisma/prisma.service";
 
 @Injectable({})
 export class UserService {
-    private readonly users: Users[] = [];
+    constructor(private prismaService: PrismaService) {
 
-    GetAll(): Users[] {
-        return this.users;
     }
 
-    Insert(userModel: UserModel){
-        const user =new Users();
-        user.id = this.users.length+1;
-        user.name = userModel.name;
-        user.username = userModel.username;
-        user.password = userModel.password;
-        user.phoneNumber = userModel.phoneNumber;
-        this.users.push(user);
+    async GetAll() {
+        return await this.prismaService.users.findMany();
+    }
+
+    async GetById(id: number) {
+        const user = await this.prismaService.users.findUnique({ where: { id: id } });
+
+        if (!user) {
+            throw new ForbiddenException('User not found');
+        }
+
+        delete user.password
+
+        return user;
+    }
+
+    async Insert(userModel: UserModel) {
+        const user = await this.prismaService.users.create({
+            data: {
+                name: userModel.name,
+                username: userModel.username,
+                password: userModel.password,
+                phoneNumber: userModel.password
+            }
+        })
+        delete user.password
+        return user;
+    }
+
+    async Update(userModel: UserModel) {
+        const user = await this.prismaService.users.update({
+            data: {
+                name: userModel.name,
+                username: userModel.username,
+                password: userModel.password,
+                phoneNumber: userModel.password
+            },
+            where: {
+                id: userModel.id
+            }
+        })
+        delete user.password
+        return user;
+    }
+
+    async Delete(id: number) {
+        const user = await this.prismaService.users.delete({
+            where: {
+                id: id
+            }
+        })
+        delete user.password
         return user;
     }
 }
